@@ -1,5 +1,8 @@
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const {
+  snapshotConstructor,
+} = require("firebase-functions/lib/providers/firestore");
 admin.initializeApp(functions.config().firebase);
 
 const db = admin.firestore();
@@ -56,3 +59,86 @@ exports.removeFollowing = functions.firestore
       return console.log(error);
     }
   });
+
+exports.eventUpdate = functions.firestore
+  .document("events/{eventId}")
+  .onUpdate(async (snapshot, context) => {
+    const before = snapshot.before.data();
+    const after = snapshot.after.data();
+    if (before.attendees.length < after.attendees.length) {
+      let attendeeJoined = after.attendees.filter(
+        (item1) => !before.attendees.some((item2) => item2.id === item1.id)[0]
+      );
+      console.log({ attendeeJoined });
+      try {
+        const followerDoc = await db
+          .collection("following")
+          .doc(attendeeJoined.id)
+          .collection("userFollowers")
+          .get();
+        followerDoc.forEach((doc) => {
+          admin
+            .database()
+            .ref(`/posts/${doc.id}`)
+            .push(
+              newPost(
+                attendeeJoined,
+                "join-event",
+                context.params.eventId,
+                before
+              )
+            );
+        });
+      } catch (error) {
+        return console.log(error);
+      }
+    }
+    if (before.attendees.length > after.attendees.length) {
+      let attendeeLeft = before.attendees.filter(
+        (item1) => !after.attendees.some((item2) => item2.id === item1.id)[0]
+      );
+      console.log({ attendeeLeft });
+      try {
+        const followerDoc = await db
+          .collection("following")
+          .doc(attendeeLeft.id)
+          .collection("userFollowers")
+          .get();
+        followerDoc.forEach((doc) => {
+          admin
+            .database()
+            .ref(`/posts/${doc.id}`)
+            .push(
+              newPost(
+                attendeeLeft,
+                "left-event",
+                context.params.eventId,
+                before
+              )
+            );
+        });
+      } catch (error) {
+        return console.log(error);
+      }
+    }
+    return console.log("finished");
+  });
+
+function newPost(user, code, eventId) {
+  return {
+    photoURL: user.photoURL,
+    date: admin.database.ServerValue.TIMESTAMP,
+    code,
+    displayName: user.displayName,
+    eventId,
+    userUid: user.id,
+    title: event.title,
+  };
+}
+
+export function getUserFeedRef() {
+  const user = firebase.auth().currentUser;
+  return (
+    firebase.database().ref(`posts/${user.uid}`).orderByKey(), limitToLast(5)
+  );
+}
