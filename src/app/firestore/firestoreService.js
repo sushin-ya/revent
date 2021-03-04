@@ -20,9 +20,18 @@ export function dataFromSnapshot(snapshot) {
   };
 }
 
-export function listenToEventsFromFirestore(predicate) {
+export function fetchEventsFromFirestore(
+  predicate,
+  limit,
+  lastDocSnapshot = null
+) {
   const user = firebase.auth().currentUser;
-  let eventRef = db.collection("events").orderBy("date", "desc");
+  let eventRef = db
+    .collection("events")
+    .orderBy("date")
+    .startAfter(lastDocSnapshot)
+    .limit(limit);
+
   switch (predicate.get("filter")) {
     case "isGoing":
       return eventRef
