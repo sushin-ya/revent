@@ -23,5 +23,5 @@ export default function useFirestoreCollection({ query, data, deps }) {
     return () => {
       unsubscribe();
     };
-  }, deps); 
+  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
 }

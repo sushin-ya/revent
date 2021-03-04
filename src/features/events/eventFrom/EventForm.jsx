@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, Redirect } from "react-router-dom";
 import { Button, Confirm, Header, Segment } from "semantic-ui-react";
-import { listenToEvents } from "../eventActions";
+import { listenToSelectedEvent } from "../eventActions";
 import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import MyTextInput from "../../../app/common/form/MyTextInput";
@@ -15,7 +15,7 @@ import MyDateInput from "../../../app/common/form/MyDateInput";
 import {
   addEventToFirestore,
   cancelEventsToggle,
-  listenToEventFromFIrestore,
+  listenToEventFromFirestore,
   updateEventToFirestore,
 } from "../../../app/firestore/firestoreService";
 import useFirestoreDoc from "../../../app/hooks/useFirestoreDoc";
@@ -26,9 +26,7 @@ export default function EventFrom({ match, history }) {
   const dispatch = useDispatch();
   const [loadingCancel, setLoadingCancel] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const selectedEvent = useSelector((state) =>
-    state.event.events.find((e) => e.id === match.params.id)
-  );
+  const { selectedEvent } = useSelector((state) => state.event);
   const { loading, error } = useSelector((state) => state.async);
 
   const initialValues = selectedEvent ?? {
@@ -73,8 +71,8 @@ export default function EventFrom({ match, history }) {
 
   useFirestoreDoc({
     shouldExecute: !!match.params.id,
-    query: () => listenToEventFromFIrestore(match.params.id),
-    data: (event) => dispatch(listenToEvents([event])),
+    query: () => listenToEventFromFirestore(match.params.id),
+    data: (event) => dispatch(listenToSelectedEvent(event)),
     deps: [match.params.id, dispatch],
   });
 

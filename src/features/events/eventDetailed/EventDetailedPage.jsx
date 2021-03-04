@@ -1,29 +1,27 @@
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Grid } from "semantic-ui-react";
-import { listenToEventFromFIrestore } from "../../../app/firestore/firestoreService";
+import { listenToEventFromFirestore } from "../../../app/firestore/firestoreService";
 import useFirestoreDoc from "../../../app/hooks/useFirestoreDoc";
-import { listenToEvents } from "../eventActions";
 import EventDetailedChat from "./EventDetailedChat";
 import EventDetailedHeader from "./EventDetailedHeader";
 import EventDetailedInfo from "./EventDetailedInfo";
 import EventDetailedSidebar from "./EventDetailedSidebar";
 import LoadingComponent from "../../../app/layout/LoadingComponent.jsx";
 import { Redirect } from "react-router-dom";
+import { listenToSelectedEvent } from "../eventActions";
 
 export default function EventDetailedPage({ match }) {
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.auth);
-  const event = useSelector((state) =>
-    state.event.events.find((e) => e.id === match.params.id)
-  );
+  const event = useSelector((state) => state.event.selectedEvent);
   const { loading, error } = useSelector((state) => state.async);
   const isHost = event?.hostUid === currentUser.uid;
   const isGoing = event?.attendees?.some((a) => a.id === currentUser.uid);
 
   useFirestoreDoc({
-    query: () => listenToEventFromFIrestore(match.params.id),
-    data: (event) => dispatch(listenToEvents([event])),
+    query: () => listenToEventFromFirestore(match.params.id),
+    data: (event) => dispatch(listenToSelectedEvent(event)),
     deps: [match.params.id, dispatch],
   });
 
@@ -40,7 +38,10 @@ export default function EventDetailedPage({ match }) {
         <EventDetailedChat eventId={event.id} />
       </Grid.Column>
       <Grid.Column width={6}>
-        <EventDetailedSidebar attendees={event?.attendees} hostUid={event.hostUid} />
+        <EventDetailedSidebar
+          attendees={event?.attendees}
+          hostUid={event.hostUid}
+        />
       </Grid.Column>
     </Grid>
   );

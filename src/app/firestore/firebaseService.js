@@ -79,7 +79,7 @@ export function addEventChatComment(eventId, values) {
     uid: user.uid,
     text: values.comment,
     date: Date.now(),
-    parentId: values.parentId,
+    parentId: values.parentId
   };
   return firebase.database().ref(`chat/${eventId}`).push(newComment);
 }
