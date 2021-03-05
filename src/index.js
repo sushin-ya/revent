@@ -8,8 +8,9 @@ import App from "./app/layout/App";
 import reportWebVitals from "./reportWebVitals";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
-import { configureStore } from "./app/store/configureStore";
+import { configureStore, history } from "./app/store/configureStore";
 import ScrollToTop from "./app/layout/ScrollToTop";
+import { ConnectedRouter } from "connected-react-router";
 
 const store = configureStore();
 
@@ -18,10 +19,10 @@ const rootEl = document.getElementById("root");
 function render() {
   ReactDOM.render(
     <Provider store={store}>
-      <BrowserRouter>
+      <ConnectedRouter history={history}>
         <ScrollToTop />
         <App />
-      </BrowserRouter>
+      </ConnectedRouter>
     </Provider>,
     rootEl
   );
