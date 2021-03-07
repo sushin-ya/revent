@@ -136,7 +136,7 @@ function newPost(user, code, eventId) {
   };
 }
 
-export function getUserFeedRef() {
+function getUserFeedRef() {
   const user = firebase.auth().currentUser;
   return (
     firebase.database().ref(`posts/${user.uid}`).orderByKey(), limitToLast(5)
